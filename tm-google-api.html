@@ -1,0 +1,34 @@
+<link rel="import" href="../polymer/polymer.html">
+
+<!--
+`tm-google-api`
+
+
+@demo demo/index.html 
+-->
+
+<dom-module id="tm-google-api">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <h2>Hello [[prop1]]</h2>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'tm-google-api',
+
+      properties: {
+        prop1: {
+          type: String,
+          value: 'tm-google-api',
+        },
+      },
+
+    });
+  </script>
+</dom-module>
