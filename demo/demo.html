@@ -33,6 +33,13 @@
       :host {
         display: block;
       }
+      .iron-selected {
+        background: lightblue;
+      }
+      paper-card {
+        width: 100%;
+        margin:10px;
+      }
     </style>
 
     <tm-google-api-login scopes="[[scopes]]" user="{{user}}" access-token="{{accessToken}}"></tm-google-api-login>
@@ -47,8 +54,17 @@
     <tm-google-api-contacts id="contacts"
                             access-token="[[accessToken]]"
                             contact-list="{{contacts}}">
-
     </tm-google-api-contacts>
+
+    <paper-card>
+      <div class="card-content">
+        <iron-selector id="scopeList" attr-for-selected="data-scope" multi selected="0" selected-items="{{selectedScopes}}" items="[[scopeList]]">
+          <div data-scope="https://www.googleapis.com/auth/gmail.send">GMail - Send</div>
+          <div data-scope="https://www.googleapis.com/auth/contacts.readonly">Contacts - Readonly</div>
+        </iron-selector>
+      </div>
+      <div class="card-actions"></div>
+    </paper-card>
 
     <paper-card>
       <div class="card-content">
@@ -81,7 +97,8 @@
       Polymer({
         is: 'tm-demo',
         properties: {
-          scopes: { type:String, notify:true, value: 'https://www.googleapis.com/auth/contacts.readonly' },
+          selectedScopes: { type:Array, notify:true, value:[]},
+          scopes: { type:String, notify:true, computed: '_generateScopes(selectedScopes)'},
           user: { type: Object, notify: true },
           accessToken: { type:String, notify:true },
           to: { type: String, notify: true, value: 'timmcm10@gmail.com' },
@@ -92,8 +109,13 @@
           contacts: { type: Array, notify: true, value: [] }
         },
         observers: [
-          'debug(data)'
+          '_debug(scopes)'
         ],
+        _generateScopes: function(selectedScopes) {
+          const scopes = selectedScopes.map((element) => (element.dataset.scope)).join(' ');
+          console.log('Scopes: ', scopes);
+          return scopes;
+        },
         _sendEmail: function() {
           this.status = '';
           this.$.emailer.send();
@@ -120,11 +142,12 @@
         _signInError: function(a) {
           console.log('SIGN IN ERROR: ', a);
         },
-        debug: function(object) {
-          console.log(object);
+        _debug: function(a,b) {
+          console.log('--->>> DEBUG: ', a, b);
         },
         ready: function() {
           console.log('Element tm-demo has been created.');
+          console.log('TESTING -->> ', this.$.scopeList.selectedItems);
         }
       });
     })(window.Polymer);
