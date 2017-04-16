@@ -1,0 +1,59 @@
+
+<dom-module id="tm-google-api-contacts">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <iron-ajax id="contacts"
+      method="GET" url="[[_generateContactsUrl(accessToken)]]"
+      handle-as="json" on-response="_emailListResponse"
+      last-error="{{lastError}}" on-error="_errorOccured">
+    </iron-ajax>
+  </template>
+  <script>
+    (function(Polymer) {
+      Polymer({
+        is: 'tm-google-api-contacts',
+        properties: {
+          accessToken: { type:String, notify:true },
+          contactList: { type: Array, notify: true },
+          lastError: { type: Object, notify: true }
+        },
+        observers: [
+          'debug(contactList)'
+        ],
+        load: function() {
+          this.$.contacts.generateRequest();
+        },
+        _emailListResponse: function(response, a, b) {
+          console.log('GOOGLE TOOLS CONTACTS RESPONSE: ', response);
+          const entries = response.detail.__data__.response.feed.entry;
+          const contacts = entries.map(entry => (parseContact(entry)));
+          this.set('contactList', contacts);
+        },
+        _generateContactsUrl(accessToken) {
+          var contactsUrl = "https://www.google.com/m8/feeds/contacts/default/thin?alt=json";
+          contactsUrl += "&access_token=" + accessToken + "&max-results=500&v=3.0";
+          return contactsUrl;
+        },
+        _errorOccured: function(error) {
+          console.log('GOOGLE TOOLS CONTACTS ERROR: ', error);
+        },
+        debug: function(object) {
+          console.log('DEBUG GOOGLE API CONTACTS: ', object);
+        },
+        ready: function() {
+          console.log('Element tm-google-api-contacts has been created.');
+        }
+      });
+      function parseContact(entry) {
+        const contact = {};
+        contact.name = (entry.gd$name !== undefined && entry.gd$name.gd$fullName !== undefined ? entry.gd$name.gd$fullName.$t : '' );
+        contact.email = (entry.gd$email !== undefined && entry.gd$email.length > 0 ? entry.gd$email["0"].address : '' );
+        return contact;
+      }
+    })(window.Polymer);
+  </script>
+</dom-module>

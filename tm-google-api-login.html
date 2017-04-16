@@ -1,0 +1,100 @@
+<dom-module id="tm-google-api-login">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+
+    <iron-ajax id="send"
+          method="POST" url="https://www.googleapis.com/upload/gmail/v1/users/[[user.id]]/messages/send"
+          content-type="message/rfc822"
+          headers="[[_computeHeader(accessToken)]]"
+          body="[[_generateBody(accessToken)]]"
+          on-response="_sendEmailResponse">
+        </iron-ajax>
+
+    <google-signin id="login" label-signin="Sign In"
+                   client-id="807943157406-a8o2lnlf559tjccjrtpmtvaj25bmcb01.apps.googleusercontent.com"
+                   on-google-signed-out="_handleSignout"
+                   theme="light"
+                   scopes="[[scopes]]"></google-signin>
+
+    <google-signin-aware
+      scopes="[[scopes]]"
+      on-google-signin-aware-success="_handleSignin"
+      on-google-signin-offline-success="_handleOffline"
+      on-google-signin-aware-error="_signInError"></google-signin-aware>
+  </template>
+  <script>
+    (function(Polymer) {
+      const clientId = '807943157406-a8o2lnlf559tjccjrtpmtvaj25bmcb01.apps.googleusercontent.com';
+
+      Polymer({
+        is: 'tm-google-api-login',
+        properties: {
+          user: { type: Object, notify: true },
+          accessToken: { type: String, notify: true },
+          scopes: { type: String, notify: true }
+        },
+        observers: [
+          'debug(user)'
+        ],
+        _computeHeader: function(accessToken) {
+          return {'Authorization': 'Bearer' + accessToken}
+        },
+        _sendEmailResponse: function(a) {
+          console.log('EMAIL SENT RESPONSE: ', a);
+        },
+        _generateBody: function() {
+          var body = "to: timmcm10@gmail.com\n";
+          body += "from: polymer.apitesting@gmail.com\n";
+          body += "subject: From test to tim\n\n";
+          body += "Some body text\n";
+          console.log('------ EMAIL BODY: ', body);
+          return body;
+        },
+        _computeHeader: function(accessToken) {
+          return {'Authorization': 'Bearer ' + accessToken}
+        },
+        _handleSignin: function(response) {
+          console.log('HANDLE SIGN IN RESPONSE: ', response);
+
+          var currentUser = gapi.auth2.getAuthInstance()['currentUser'].get();
+          var profile = currentUser.getBasicProfile();
+          var accessToken = response.detail.access_token;
+
+          const user = {
+            id: profile.getId(),
+            name: profile.getName(),
+            profile: profile.getImageUrl(),
+            email: profile.getEmail(),
+            cover: profile.getImageUrl()
+          }
+          console.log('Access Token: ', accessToken);
+          console.log('User: ', user);
+
+          this.set('accessToken', accessToken);
+          this.set('user', user);
+        },
+        _handleSignout: function(response) {
+          console.log('Signed out: ', response);
+          this.set('user', undefined);
+        },
+        _handleOffline: function(response) {
+          console.log('Offline code received: ' + response.detail.code);
+        },
+        _signInError: function(a) {
+          console.log('SIGN IN ERROR: ', a);
+        },
+        debug: function(a,b) {
+          console.log('==== DEBUG OBJECT: ', a, b);
+        },
+        ready: function() {
+          console.log('Element tm-google-api-login has been created.');
+        }
+      });
+
+    })(window.Polymer);
+  </script>
+</dom-module>

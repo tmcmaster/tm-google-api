@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1, initial-scale=1, user-scalable=yes">
+
+    <title>tm-concierge demo</title>
+
+    <script src="../bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+    <link rel="import" href="../bower_components/polymer/polymer.html">
+
+    <link rel="import" href="../bower_components/iron-elements/iron-elements.html">
+    <link rel="import" href="../bower_components/paper-elements/paper-elements.html">
+    <link rel="import" href="../bower_components/google-signin/google-signin.html">
+
+    <link rel="import" href="../tm-google-api-login.html">
+    <link rel="import" href="../tm-google-api-email.html">
+    <link rel="import" href="../tm-google-api-contacts.html">
+
+    <style is="custom-style" include="demo-pages-shared-styles">
+    </style>
+  </head>
+  <body>
+    <div class="vertical-section-container centered">
+      <tm-demo></tm-demo>
+    </div>
+  </body>
+</html>
+
+<dom-module id="tm-demo">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+
+    <tm-google-api-login scopes="[[scopes]]" user="{{user}}" access-token="{{accessToken}}"></tm-google-api-login>
+
+    <tm-google-api-email id="emailer"
+                         user="[[user]]"
+                         access-token="[[accessToken]]"
+                         to="[[to]]" from="[[from]]"
+                         subject="[[subject]]"
+                         body="[[body]]" status="{{status}}"></tm-google-api-email>
+
+    <tm-google-api-contacts id="contacts"
+                            access-token="[[accessToken]]"
+                            contact-list="{{contacts}}">
+
+    </tm-google-api-contacts>
+
+    <paper-card>
+      <div class="card-content">
+        <paper-input label="To" value="{{to}}"></paper-input>
+        <paper-input label="From" value="{{from}}"></paper-input>
+        <paper-input label="Subject" value="{{subject}}"></paper-input>
+        <paper-input label="Body" value="{{body}}"></paper-input>
+        <span>[[status]]</span>
+      </div>
+      <div class="card-actions">
+        <paper-button on-tap="_sendEmail" raised>Send Email</paper-button>
+      </div>
+    </paper-card>
+
+    <paper-card>
+      <div class="card-content">
+        <ul>
+          <template is="dom-repeat" items="[[contacts]]" item="contact">
+            <li>[[item.name]] - [[item.email]]</li>
+          </template>
+        </ul>
+      </div>
+      <div class="card-actions">
+        <paper-button on-tap="_getContacts" raised>Get Contacts</paper-button>
+      </div>
+    </paper-card>
+  </template>
+  <script>
+    (function(Polymer) {
+      Polymer({
+        is: 'tm-demo',
+        properties: {
+          scopes: { type:String, notify:true, value: 'https://www.googleapis.com/auth/contacts.readonly' },
+          user: { type: Object, notify: true },
+          accessToken: { type:String, notify:true },
+          to: { type: String, notify: true, value: 'timmcm10@gmail.com' },
+          from: { type: String, notify: true, value: 'polymer.apitesting@gmail.com' },
+          subject: { type: String, notify: true, value: 'From Polymer to me.' },
+          body: { type: String, notify: true, value: 'This is a test email from Polymer to me.' },
+          status: { type: String, notify: true, value: '' },
+          contacts: { type: Array, notify: true, value: [] }
+        },
+        observers: [
+          'debug(data)'
+        ],
+        _sendEmail: function() {
+          this.status = '';
+          this.$.emailer.send();
+        },
+        _getContacts: function() {
+          this.$.contacts.load();
+        },
+        _handleSignin: function(response) {
+          console.log('_handleSignin');
+          // var user = gapi.auth2.getAuthInstance()['currentUser'].get();
+          // console.log('User name: ' + user.getBasicProfile().getName());
+        },
+        _handleOffline: function() {
+          console.log('_handleOffline');
+        },
+        _signIn: function() {
+          console.log('_signIn');
+          this.$.login.signIn();
+        },
+        _signOut: function() {
+          console.log('_signOut');
+          // this.$.login.signOut();
+        },
+        _signInError: function(a) {
+          console.log('SIGN IN ERROR: ', a);
+        },
+        debug: function(object) {
+          console.log(object);
+        },
+        ready: function() {
+          console.log('Element tm-demo has been created.');
+        }
+      });
+    })(window.Polymer);
+  </script>
+</dom-module>

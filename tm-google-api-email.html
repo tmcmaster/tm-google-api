@@ -1,0 +1,68 @@
+
+<dom-module id="tm-google-api-email">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+    <iron-ajax id="send"
+               method="POST" url="https://www.googleapis.com/upload/gmail/v1/users/[[user.id]]/messages/send"
+               content-type="message/rfc822"
+               headers="[[_computeHeader(accessToken)]]"
+               body="[[_generateBody(to,from,subject,body)]]"
+               on-response="_sendEmailResponse"></iron-ajax>
+  </template>
+  <script>
+    (function(Polymer) {
+      Polymer({
+        is: 'tm-google-api-email',
+        properties: {
+          user: { type: Object, notify: true },
+          accessToken: { type: String, notify: true },
+          to: { type: String, notify: true },
+          from: { type: String, notify: true },
+          subject: { type: String, notify: true },
+          body: { type: String, notify: true },
+          status: { type: String, notify: true }
+        },
+        observers: [
+          '_debug(accessToken)'
+        ],
+        _debug: function(object) {
+          console.log(object);
+        },
+        send: function() {
+          console.log('SENDING EMAIL: ', this.accessToken,this.to,this.from,this.subject,this.body);
+          this.$.send.generateRequest();
+        },
+        _computeHeader: function(accessToken) {
+          return {'Authorization': 'Bearer' + accessToken}
+        },
+        _sendEmailResponse: function(response) {
+          console.log('EMAIL SENT RESPONSE: ', response);
+          const responseStatus = response.detail.__data__.status;
+          this.status = (responseStatus === 200 ? 'email sent' : 'email could not be sent.');
+        },
+        _generateBody: function(to,from,subject,body) {
+          if (to === undefined || from === undefined || subject === undefined || body === undefined) {
+            return undefined;
+          } else {
+            var emailBody = "to: " + to + "\n";
+            emailBody += "from: " + from + "\n";
+            emailBody += "subject: " + subject + "\n\n";
+            emailBody += body + "\n";
+            //console.log('====== EMAIL BODY: ', body);
+            return emailBody;
+          }
+        },
+        _computeHeader: function(accessToken) {
+          return {'Authorization': 'Bearer ' + accessToken}
+        },
+        ready: function() {
+          console.log('Element tm-google-api-email has been created.');
+        }
+      });
+    })(window.Polymer);
+  </script>
+</dom-module>
